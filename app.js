@@ -558,6 +558,65 @@ function bindEvents() {
   });
 }
 
+/* ---------- Hero slideshow ---------- */
+
+function initSlideshow() {
+  const root = $("#slideshow");
+  if (!root) return;
+  const slides = $$(".slide", root);
+  const dots = $(".slide-dots", root);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let index = 0;
+  let timer = null;
+
+  dots.innerHTML = slides
+    .map((s, i) => `<button type="button" role="tab" aria-label="Photo ${i + 1}" aria-selected="${i === 0}"></button>`)
+    .join("");
+  const dotButtons = $$("button", dots);
+
+  function show(i) {
+    index = (i + slides.length) % slides.length;
+    slides.forEach((s, n) => s.classList.toggle("active", n === index));
+    dotButtons.forEach((d, n) => d.setAttribute("aria-selected", String(n === index)));
+  }
+
+  function start() {
+    if (reduceMotion) return;
+    stop();
+    timer = setInterval(() => show(index + 1), 5000);
+  }
+
+  function stop() {
+    clearInterval(timer);
+  }
+
+  $(".prev", root).addEventListener("click", () => { show(index - 1); start(); });
+  $(".next", root).addEventListener("click", () => { show(index + 1); start(); });
+  dotButtons.forEach((d, n) => d.addEventListener("click", () => { show(n); start(); }));
+
+  root.addEventListener("mouseenter", stop);
+  root.addEventListener("mouseleave", start);
+  root.addEventListener("focusin", stop);
+  root.addEventListener("focusout", start);
+  root.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") show(index - 1);
+    if (e.key === "ArrowRight") show(index + 1);
+  });
+
+  let touchX = null;
+  root.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; stop(); }, { passive: true });
+  root.addEventListener("touchend", (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) show(index + (dx < 0 ? 1 : -1));
+    touchX = null;
+    start();
+  });
+
+  document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
+  start();
+}
+
 /* ---------- Init ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -571,4 +630,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPackages();
   renderQuote();
   bindEvents();
+  initSlideshow();
 });
