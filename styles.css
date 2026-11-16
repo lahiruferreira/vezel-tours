@@ -30,6 +30,7 @@ p { margin: 0 0 1em; }
 .narrow { width: min(820px, 92%); }
 .section { padding: 88px 0; }
 .section-alt { background: var(--bg-alt); }
+.section-first { padding-top: 48px; }
 .section-dark { background: var(--dark); color: #e9ecef; }
 .section-dark .eyebrow { color: var(--gold); }
 .section-head { max-width: 720px; margin-bottom: 36px; }
